@@ -192,7 +192,7 @@ class ContentUpdater {
               </div>
             </div>
             <a href="detail_service.html?id=${service.id}" class="service-button w-button">View more</a>
-            <img src="${service.image}" loading="lazy" alt="${service.title}" class="service-hover-image">
+            <img src="images/Woods-Roofing-Exteriors.svg" loading="lazy" alt="Woods Roofing & Exteriors Logo" class="service-hover-image">
           </div>
         </div>
       `).join('');

@@ -1,172 +1,114 @@
 #!/usr/bin/env node
 
+const fs = require('fs').promises;
+const path = require('path');
+require('dotenv').config();
+
+const NotionCMS = require('./notion-client');
 const ContentUpdater = require('./update-content');
 const SEOOptimizer = require('./seo-optimizer');
-const path = require('path');
-const fs = require('fs').promises;
 
 class WebsiteBuilder {
-  constructor() {
-    this.rootDir = path.join(__dirname, '..');
-  }
-
-  // Check if environment is properly configured
-  async checkEnvironment() {
-    console.log('🔍 Checking environment configuration...');
-    
-    const envPath = path.join(this.rootDir, '.env');
-    
-    try {
-      await fs.access(envPath);
-      require('dotenv').config({ path: envPath });
-      
-      const requiredVars = [
-        'NOTION_API_KEY',
-        'NOTION_DATABASE_BLOGS',
-        'NOTION_DATABASE_SERVICES',
-        'NOTION_DATABASE_TESTIMONIALS',
-        'NOTION_DATABASE_CONTACT_FORMS'
-      ];
-      
-      const missingVars = requiredVars.filter(varName => !process.env[varName]);
-      
-      if (missingVars.length > 0) {
-        console.log('⚠️ Missing environment variables:', missingVars.join(', '));
-        console.log('📝 Please copy notion.config.example to .env and configure your Notion settings');
-        return false;
-      }
-      
-      console.log('✅ Environment configuration is valid');
-      return true;
-    } catch (error) {
-      console.log('❌ .env file not found');
-      console.log('📝 Please copy notion.config.example to .env and configure your Notion settings');
-      return false;
+    constructor() {
+        this.cms = new NotionCMS();
+        this.contentUpdater = new ContentUpdater(this.cms); 
+        this.seoOptimizer = new SEOOptimizer();
     }
-  }
 
-  // Validate HTML files exist
-  async validateFiles() {
-    console.log('📄 Validating HTML files...');
-    
-    const requiredFiles = [
-      'index.html',
-      'blogs.html',
-      'service.html',
-      'contact.html',
-      'reviews.html'
-    ];
-    
-    for (const file of requiredFiles) {
-      const filePath = path.join(this.rootDir, file);
-      try {
-        await fs.access(filePath);
-      } catch (error) {
-        console.error(`❌ Required file missing: ${file}`);
-        return false;
-      }
+    async build() {
+        try {
+            console.log('🚀 Starting Woods Roofing website build...\n');
+
+            // Step 1: Environment validation
+            console.log('🔍 Checking environment configuration...');
+            await this.validateEnvironment();
+            console.log('✅ Environment configuration is valid');
+
+            // Step 2: File validation  
+            console.log('📄 Validating HTML files...');
+            await this.validateFiles();
+            console.log('✅ All required HTML files found\n');
+
+            // Step 3: Content update from Notion
+            console.log('📥 Fetching content from Notion CMS...');
+            await this.contentUpdater.updateAll();
+
+            // Step 4: Get services data for SEO optimization
+            const services = await this.cms.getServices();
+            const testimonials = await this.cms.getTestimonials();
+
+            // Step 5: Advanced SEO optimization with API insights
+            console.log('🔍 Applying advanced SEO optimization...');
+            await this.seoOptimizer.optimizePage('index.html', 'homepage', { 
+                services, 
+                testimonials 
+            });
+
+            // Step 6: Generate sitemap
+            await this.generateSitemap();
+
+            console.log('\n🎉 Build completed successfully!');
+            console.log('🌐 Website ready for deployment');
+
+        } catch (error) {
+            console.error('\n❌ Build failed:', error.message);
+            process.exit(1);
+        }
     }
-    
-    console.log('✅ All required HTML files found');
-    return true;
-  }
 
-  // Generate sitemap
-  async generateSitemap() {
-    console.log('🗺️ Generating sitemap...');
-    
-    const baseUrl = process.env.SITE_URL || 'https://woodsroofing.com';
-    const pages = [
-      { url: '/', priority: '1.0' },
-      { url: '/about.html', priority: '0.8' },
-      { url: '/service.html', priority: '0.9' },
-      { url: '/blogs.html', priority: '0.7' },
-      { url: '/contact.html', priority: '0.8' },
-      { url: '/reviews.html', priority: '0.6' },
-    ];
-    
-    const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${pages.map(page => `  <url>
-    <loc>${baseUrl}${page.url}</loc>
-    <lastmod>${new Date().toISOString().split('T')[0]}</lastmod>
-    <priority>${page.priority}</priority>
-  </url>`).join('\n')}
-</urlset>`;
+    async validateEnvironment() {
+        const requiredVars = [
+            'NOTION_API_KEY',
+            'NOTION_DATABASE_SERVICES', 
+            'NOTION_DATABASE_BLOGS',
+            'NOTION_DATABASE_TESTIMONIALS',
+            'NOTION_DATABASE_CONTACT_FORMS'
+        ];
 
-    const sitemapPath = path.join(this.rootDir, 'sitemap.xml');
-    await fs.writeFile(sitemapPath, sitemap, 'utf-8');
-    console.log('✅ Sitemap generated');
-  }
-
-  // Update meta tags and SEO
-  async updateSEO() {
-    console.log('🔍 Updating SEO meta tags...');
-    
-    const siteName = process.env.SITE_NAME || 'Woods Roofing & Exteriors';
-    const siteDescription = process.env.SITE_DESCRIPTION || 'Professional roofing services in Southwest Ohio';
-    
-    // This could be expanded to update meta tags in HTML files
-    console.log('✅ SEO optimization complete');
-  }
-
-  // Main build process
-  async build() {
-    console.log('🚀 Starting Woods Roofing website build...\n');
-    
-    try {
-      // Step 1: Check environment
-      const envValid = await this.checkEnvironment();
-      if (!envValid) {
-        console.log('\n❌ Build failed: Environment configuration required');
-        process.exit(1);
-      }
-      
-      // Step 2: Validate files
-      const filesValid = await this.validateFiles();
-      if (!filesValid) {
-        console.log('\n❌ Build failed: Missing required files');
-        process.exit(1);
-      }
-      
-      // Step 3: Update content from Notion
-      console.log('\n📥 Fetching content from Notion CMS...');
-      const contentUpdater = new ContentUpdater();
-      await contentUpdater.updateAll();
-      
-      // Step 4: Advanced SEO optimization
-      console.log('\n🔍 Applying advanced SEO optimization...');
-      const seoOptimizer = new SEOOptimizer();
-      
-      // Get services for homepage SEO optimization
-      const NotionCMS = require('./notion-client');
-      const notion = new NotionCMS();
-      const services = await notion.getServices();
-      const testimonials = await notion.getTestimonials();
-      
-      // Optimize homepage with full SEO
-      await seoOptimizer.optimizeHomepage(services, testimonials);
-      console.log('✅ Advanced SEO optimization complete');
-      
-      // Step 5: Generate sitemap
-      await this.generateSitemap();
-      
-      console.log('\n🎉 Build completed successfully!');
-      console.log('🌐 Your website is ready to serve');
-      console.log('📡 Tailscale URL: https://maymarketing.tail7fcb21.ts.net/');
-      console.log('🏠 Local URL: http://localhost:8000');
-      
-    } catch (error) {
-      console.error('\n❌ Build failed:', error.message);
-      process.exit(1);
+        const missing = requiredVars.filter(varName => !process.env[varName]);
+        
+        if (missing.length > 0) {
+            throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+        }
     }
-  }
+
+    async validateFiles() {
+        const requiredFiles = [
+            'index.html',
+            'about.html', 
+            'service.html',
+            'blogs.html',
+            'contact.html',
+            'reviews.html'
+        ];
+
+        for (const file of requiredFiles) {
+            try {
+                await fs.access(file);
+            } catch (error) {
+                throw new Error(`Required file not found: ${file}`);
+            }
+        }
+    }
+
+    async generateSitemap() {
+        const pages = [
+            { path: '/', priority: '1.0', changefreq: 'weekly' },
+            { path: '/about.html', priority: '0.8', changefreq: 'monthly' },
+            { path: '/service.html', priority: '0.9', changefreq: 'weekly' },
+            { path: '/blogs.html', priority: '0.7', changefreq: 'weekly' },
+            { path: '/contact.html', priority: '0.8', changefreq: 'monthly' },
+            { path: '/reviews.html', priority: '0.6', changefreq: 'monthly' }
+        ];
+
+        await this.seoOptimizer.generateSitemap(pages);
+    }
 }
 
-// Run if called directly
+// Run the build if this script is executed directly
 if (require.main === module) {
-  const builder = new WebsiteBuilder();
-  builder.build();
+    const builder = new WebsiteBuilder();
+    builder.build();
 }
 
 module.exports = WebsiteBuilder; 
