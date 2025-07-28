@@ -1,0 +1,35 @@
+{
+  "name": "woods-roofing-website",
+  "version": "1.0.0",
+  "description": "Woods Roofing & Exteriors Website with Notion CMS Integration",
+  "main": "scripts/build.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/build.js && python3 -m http.server 8000",
+    "serve": "python3 -m http.server 8000",
+    "update-content": "node scripts/update-content.js",
+    "webhook": "node scripts/webhook-server.js",
+    "sync-to-notion": "node scripts/sync-service.js to-notion",
+    "sync-watch": "node scripts/sync-service.js watch",
+    "sync-full": "node scripts/sync-service.js full",
+    "dev-with-webhook": "concurrently \"npm run webhook\" \"npm run dev\"",
+    "deploy": "node scripts/netlify-deploy.js deploy",
+    "deploy-simple": "node scripts/simple-deploy.js",
+    "deploy-status": "node scripts/netlify-deploy.js status"
+  },
+  "dependencies": {
+    "@notionhq/client": "^2.2.15",
+    "dotenv": "^16.4.5",
+    "cheerio": "^1.0.0-rc.12",
+    "markdown-it": "^14.1.0",
+    "express": "^4.18.2",
+    "chokidar": "^3.5.3",
+    "concurrently": "^8.2.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.4"
+  },
+  "keywords": ["roofing", "website", "notion", "cms", "static"],
+  "author": "Woods Roofing & Exteriors",
+  "license": "MIT"
+} 

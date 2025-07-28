@@ -1,0 +1,17 @@
+# Woods Roofing Website - Notion CMS Configuration
+# Copy this file to .env and add your actual values
+
+# Notion Integration Settings
+NOTION_API_KEY=secret_your_notion_api_key_here
+NOTION_DATABASE_BLOGS=your_blog_database_id_here
+NOTION_DATABASE_SERVICES=your_services_database_id_here
+NOTION_DATABASE_TESTIMONIALS=your_testimonials_database_id_here
+NOTION_DATABASE_CONTACT_FORMS=your_contact_forms_database_id_here
+
+# Website Settings
+SITE_URL=https://maymarketing.tail7fcb21.ts.net
+SITE_NAME=Woods Roofing & Exteriors
+SITE_DESCRIPTION=Professional roofing services in Southwest Ohio
+
+# Development Settings
+NODE_ENV=development 
