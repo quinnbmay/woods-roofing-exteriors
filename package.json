@@ -2,8 +2,9 @@
   "name": "woods-roofing-website",
   "version": "1.0.0",
   "description": "Woods Roofing & Exteriors Website with Notion CMS Integration",
-  "main": "scripts/build.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "build": "node scripts/build.js",
     "dev": "node scripts/build.js && python3 -m http.server 8000",
     "serve": "python3 -m http.server 8000",
