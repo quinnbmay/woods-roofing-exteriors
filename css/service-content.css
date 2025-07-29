@@ -1,0 +1,153 @@
+/* Service Content Styles - Dynamic content from Notion CMS */
+
+.service-content {
+  line-height: 1.6;
+  color: #333;
+}
+
+.service-content h1,
+.service-content h2,
+.service-content h3 {
+  color: #2c3e50;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+
+.service-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+}
+
+.service-content h2 {
+  font-size: 2rem;
+  font-weight: 600;
+  border-bottom: 2px solid #e74c3c;
+  padding-bottom: 0.5rem;
+}
+
+.service-content h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.service-content p {
+  margin-bottom: 1.5rem;
+  font-size: 1.1rem;
+}
+
+.service-content ul,
+.service-content ol {
+  margin: 1.5rem 0;
+  padding-left: 2rem;
+}
+
+.service-content li {
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.service-content ul li {
+  list-style-type: disc;
+}
+
+.service-content ol li {
+  list-style-type: decimal;
+}
+
+.service-quote {
+  background: #f8f9fa;
+  border-left: 4px solid #e74c3c;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  font-style: italic;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+.service-divider {
+  border: none;
+  height: 2px;
+  background: linear-gradient(to right, #e74c3c, transparent);
+  margin: 3rem 0;
+}
+
+.service-callout {
+  background: #fff3cd;
+  border: 1px solid #ffeaa7;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin: 2rem 0;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.callout-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.callout-content {
+  flex: 1;
+}
+
+.service-image-wrapper {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.service-content-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.image-caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .service-content h1 {
+    font-size: 2rem;
+  }
+  
+  .service-content h2 {
+    font-size: 1.5rem;
+  }
+  
+  .service-content h3 {
+    font-size: 1.25rem;
+  }
+  
+  .service-content p,
+  .service-content li {
+    font-size: 1rem;
+  }
+  
+  .service-callout {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+}
+
+/* Loading states */
+.service-loading {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+.service-error {
+  text-align: center;
+  padding: 2rem;
+  color: #e74c3c;
+  background: #ffeaea;
+  border-radius: 8px;
+  margin: 1rem 0;
+}

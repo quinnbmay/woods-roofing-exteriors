@@ -2,12 +2,14 @@
 <html data-wf-page="68594a8eecc5967a88448ff1" data-wf-site="68594a8eecc5967a88448fac" lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Woods Roofing &amp; Exteriors</title>
+  <title id="service-title">Service Details | Woods Roofing &amp; Exteriors</title>
+  <meta name="description" id="service-description" content="Professional roofing services in Middletown Ohio by Woods Roofing & Exteriors">
   <meta content="width=device-width, initial-scale=1" name="viewport">
   <meta content="Webflow" name="generator">
   <link href="css/normalize.css" rel="stylesheet" type="text/css">
   <link href="css/webflow.css" rel="stylesheet" type="text/css">
   <link href="css/woods-roofing-exteriors.webflow.css" rel="stylesheet" type="text/css">
+  <link href="css/service-content.css" rel="stylesheet" type="text/css">
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin="anonymous">
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
@@ -77,26 +79,28 @@
           <div data-w-id="e046253a-47a9-0184-f794-9c2ebda53cba" style="opacity:0" class="hero-title-wrapper">
             <h5 class="section-label">our services</h5>
             <div class="title-wrapper">
-              <h1 class="hero-title w-dyn-bind-empty"></h1>
+              <h1 id="service-hero-title" class="hero-title">Loading Service...</h1>
               <div class="service-duration-wrapper">
                 <div class="service-time-content-wrapper">
                   <p class="service-time-title">📅 Timeframe:</p>
-                  <p class="service-time-text w-dyn-bind-empty"></p>
+                  <p id="service-timeframe" class="service-time-text">Loading...</p>
                 </div>
                 <div class="service-budget-wrapper">
                   <p class="service-budget-title">💰 Budget Range:</p>
-                  <p class="service-budget w-dyn-bind-empty"></p>
+                  <p id="service-price" class="service-budget">Loading...</p>
                 </div>
               </div>
             </div>
-          </div><img src="images/image-24.png" loading="lazy" style="opacity:0" data-w-id="3f792758-5d27-9ea6-f25d-196d42d3bef4" alt="" class="service-thumbnail w-dyn-bind-empty">
+          </div><img id="service-hero-image" src="images/image-24.png" loading="lazy" style="opacity:0" data-w-id="3f792758-5d27-9ea6-f25d-196d42d3bef4" alt="Service Image" class="service-thumbnail">
         </div>
       </div>
     </div>
   </section>
   <section class="service-details-section">
     <div class="w-layout-blockcontainer container w-container">
-      <div data-w-id="47e63ecf-ffe4-b0bd-65ed-5947329c5298" style="opacity:0" class="service-content w-dyn-bind-empty w-richtext"></div>
+      <div data-w-id="47e63ecf-ffe4-b0bd-65ed-5947329c5298" style="opacity:0" id="service-content" class="service-content w-richtext">
+        <p>Loading service content...</p>
+      </div>
     </div>
   </section>
   <section class="faq-section padding-bottom">
@@ -268,5 +272,49 @@
   </section>
   <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=68594a8eecc5967a88448fac" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
   <script src="js/webflow.js" type="text/javascript"></script>
+  
+  <script>
+    // Load service content dynamically
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const serviceId = urlParams.get('id');
+      
+      if (!serviceId) {
+        document.getElementById('service-hero-title').textContent = 'Service Not Found';
+        document.getElementById('service-content').innerHTML = '<p>No service ID provided. <a href="service.html">Return to services</a></p>';
+        return;
+      }
+      
+      // Load service data from a JSON endpoint
+      loadServiceData(serviceId);
+    });
+    
+    async function loadServiceData(serviceId) {
+      try {
+        // For now, we'll load from a generated JSON file in the services directory
+        const response = await fetch(`services/${serviceId}.json`);
+        if (!response.ok) {
+          throw new Error('Service not found');
+        }
+        
+        const service = await response.json();
+        
+        // Update page content
+        document.getElementById('service-title').textContent = `${service.title} | Woods Roofing & Exteriors`;
+        document.getElementById('service-description').setAttribute('content', service.shortDescription);
+        document.getElementById('service-hero-title').textContent = service.title;
+        document.getElementById('service-timeframe').textContent = service.timeframe;
+        document.getElementById('service-price').textContent = service.price;
+        document.getElementById('service-hero-image').src = service.image;
+        document.getElementById('service-hero-image').alt = service.title;
+        document.getElementById('service-content').innerHTML = service.content;
+        
+      } catch (error) {
+        console.error('Error loading service:', error);
+        document.getElementById('service-hero-title').textContent = 'Service Not Found';
+        document.getElementById('service-content').innerHTML = '<p>Sorry, this service could not be found. <a href="service.html">Return to services</a></p>';
+      }
+    }
+  </script>
 </body>
 </html>

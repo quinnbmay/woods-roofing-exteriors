@@ -88,31 +88,64 @@ class ContentUpdater {
     }
 
     // Find services container and update
-    const servicesContainer = $('.services-content-wrapper .w-layout-grid, .services-list');
+    const servicesContainer = $('.service-list');
     if (servicesContainer.length > 0) {
       servicesContainer.empty();
       
-      services.forEach(service => {
-        const serviceHtml = this.generateServiceItemHtml(service);
+      services.forEach((service, index) => {
+        const serviceHtml = this.generateServiceItemHtml(service, index + 1);
         servicesContainer.append(serviceHtml);
       });
     }
 
     await this.writeHtmlFile('service.html', $);
+    
+    // Generate individual service pages
+    await this.generateServicePages(services);
+  }
+
+  // Generate individual service pages as JSON files
+  async generateServicePages(services) {
+    console.log('📄 Generating individual service pages...');
+    
+    // Create services directory if it doesn't exist
+    const servicesDir = path.join(this.rootDir, 'services');
+    try {
+      await fs.access(servicesDir);
+    } catch {
+      await fs.mkdir(servicesDir, { recursive: true });
+    }
+
+    // Generate JSON file for each service
+    for (const service of services) {
+      try {
+        // Get detailed service content from Notion
+        const detailedService = await this.notion.getServiceById(service.id);
+        
+        if (detailedService) {
+          const serviceFilePath = path.join(servicesDir, `${service.slug}.json`);
+          await fs.writeFile(serviceFilePath, JSON.stringify(detailedService, null, 2), 'utf-8');
+          console.log(`✅ Generated service page: ${service.slug}.json`);
+        }
+      } catch (error) {
+        console.error(`❌ Error generating service page for ${service.title}:`, error);
+      }
+    }
   }
 
   // Generate service item HTML
-  generateServiceItemHtml(service) {
+  generateServiceItemHtml(service, serviceNumber) {
     return `
       <div class="single-service">
-        <div class="service-icon-wrapper">
-          <img src="${service.icon}" loading="lazy" alt="${service.title} Icon" class="service-icon">
+        <div class="service-top">
+          <p class="service-number">${serviceNumber.toString().padStart(2, '0')}</p>
+          <div class="service-title-wrapper">
+            <h4 class="service-title">${service.title}</h4>
+            <p class="service-excerpt">${service.shortDescription}</p>
+          </div>
         </div>
-        <div class="service-content">
-          <h4 class="service-title">${service.title}</h4>
-          <p class="service-description">${service.shortDescription}</p>
-          <a href="detail_service.html?id=${service.id}" class="service-button w-button">View more</a>
-        </div>
+        <a href="detail_service.html?id=${service.slug}" class="service-button w-button">View more</a>
+        <img src="${service.icon}" loading="lazy" alt="${service.title} in Middletown Ohio" class="service-hover-image">
       </div>
     `;
   }

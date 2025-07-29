@@ -80,11 +80,40 @@ class NotionCMS {
         image: page.properties.Image?.files?.[0]?.file?.url || page.properties.Image?.files?.[0]?.external?.url || '/images/full-shot-roof.png',
         category: page.properties.Category?.select?.name || 'Services',
         price: page.properties.Price?.rich_text?.[0]?.plain_text || 'Contact for Quote',
+        timeframe: page.properties.Timeframe?.rich_text?.[0]?.plain_text || '1-3 days',
         slug: page.properties.Slug?.rich_text?.[0]?.plain_text || page.id,
       }));
     } catch (error) {
       console.error('Error fetching services:', error);
       return [];
+    }
+  }
+
+  // Get detailed service by ID
+  async getServiceById(serviceId) {
+    try {
+      const service = await this.notion.pages.retrieve({
+        page_id: serviceId,
+      });
+
+      const content = await this.getPageContent(serviceId);
+
+      return {
+        id: service.id,
+        title: this.richTextToHtml(service.properties.Title?.title || []),
+        description: this.richTextToHtml(service.properties.Description?.rich_text || []),
+        shortDescription: this.richTextToHtml(service.properties.ShortDescription?.rich_text || []),
+        icon: service.properties.Icon?.files?.[0]?.file?.url || service.properties.Icon?.files?.[0]?.external?.url || '/images/roofing-1.svg',
+        image: service.properties.Image?.files?.[0]?.file?.url || service.properties.Image?.files?.[0]?.external?.url || '/images/full-shot-roof.png',
+        category: service.properties.Category?.select?.name || 'Services',
+        price: service.properties.Price?.rich_text?.[0]?.plain_text || 'Contact for Quote',
+        timeframe: service.properties.Timeframe?.rich_text?.[0]?.plain_text || '1-3 days',
+        slug: service.properties.Slug?.rich_text?.[0]?.plain_text || service.id,
+        content: content,
+      };
+    } catch (error) {
+      console.error('Error fetching service by ID:', error);
+      return null;
     }
   }
 
@@ -139,28 +168,89 @@ class NotionCMS {
 
   // Convert Notion blocks to HTML
   blocksToHtml(blocks) {
-    return blocks.map(block => {
-      switch (block.type) {
-        case 'paragraph':
-          return `<p>${this.richTextToHtml(block.paragraph.rich_text)}</p>`;
-        case 'heading_1':
-          return `<h1>${this.richTextToHtml(block.heading_1.rich_text)}</h1>`;
-        case 'heading_2':
-          return `<h2>${this.richTextToHtml(block.heading_2.rich_text)}</h2>`;
-        case 'heading_3':
-          return `<h3>${this.richTextToHtml(block.heading_3.rich_text)}</h3>`;
-        case 'bulleted_list_item':
-          return `<li>${this.richTextToHtml(block.bulleted_list_item.rich_text)}</li>`;
-        case 'numbered_list_item':
-          return `<li>${this.richTextToHtml(block.numbered_list_item.rich_text)}</li>`;
-        case 'image':
-          const imageUrl = block.image.file?.url || block.image.external?.url;
-          const caption = this.richTextToHtml(block.image.caption);
-          return `<img src="${imageUrl}" alt="${caption}" loading="lazy">`;
-        default:
-          return '';
+    let html = '';
+    let inList = false;
+    let listType = '';
+
+    for (let i = 0; i < blocks.length; i++) {
+      const block = blocks[i];
+      
+      // Handle list grouping
+      if (block.type === 'bulleted_list_item' || block.type === 'numbered_list_item') {
+        const currentListType = block.type === 'bulleted_list_item' ? 'ul' : 'ol';
+        
+        if (!inList) {
+          html += `<${currentListType}>`;
+          inList = true;
+          listType = currentListType;
+        } else if (listType !== currentListType) {
+          html += `</${listType}><${currentListType}>`;
+          listType = currentListType;
+        }
+        
+        const listContent = block.type === 'bulleted_list_item' 
+          ? block.bulleted_list_item.rich_text 
+          : block.numbered_list_item.rich_text;
+        html += `<li>${this.richTextToHtml(listContent)}</li>`;
+      } else {
+        // Close any open list
+        if (inList) {
+          html += `</${listType}>`;
+          inList = false;
+          listType = '';
+        }
+        
+        // Handle other block types
+        switch (block.type) {
+          case 'paragraph':
+            html += `<p>${this.richTextToHtml(block.paragraph.rich_text)}</p>`;
+            break;
+          case 'heading_1':
+            html += `<h1>${this.richTextToHtml(block.heading_1.rich_text)}</h1>`;
+            break;
+          case 'heading_2':
+            html += `<h2>${this.richTextToHtml(block.heading_2.rich_text)}</h2>`;
+            break;
+          case 'heading_3':
+            html += `<h3>${this.richTextToHtml(block.heading_3.rich_text)}</h3>`;
+            break;
+          case 'quote':
+            html += `<blockquote class="service-quote">${this.richTextToHtml(block.quote.rich_text)}</blockquote>`;
+            break;
+          case 'code':
+            html += `<pre><code>${this.richTextToHtml(block.code.rich_text)}</code></pre>`;
+            break;
+          case 'divider':
+            html += '<hr class="service-divider">';
+            break;
+          case 'callout':
+            html += `<div class="service-callout">
+              <div class="callout-icon">${block.callout.icon?.emoji || '💡'}</div>
+              <div class="callout-content">${this.richTextToHtml(block.callout.rich_text)}</div>
+            </div>`;
+            break;
+          case 'image':
+            const imageUrl = block.image?.file?.url || block.image?.external?.url;
+            const caption = block.image?.caption ? this.richTextToHtml(block.image.caption) : '';
+            if (imageUrl) {
+              html += `<div class="service-image-wrapper">
+                <img src="${imageUrl}" alt="${caption}" class="service-content-image" loading="lazy">
+                ${caption ? `<p class="image-caption">${caption}</p>` : ''}
+              </div>`;
+            }
+            break;
+          default:
+            break;
+        }
       }
-    }).join('\n');
+    }
+    
+    // Close any remaining open list
+    if (inList) {
+      html += `</${listType}>`;
+    }
+    
+    return html;
   }
 
   // Save contact form submission to Notion
