@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "node scripts/build.js",
+    "railway-build": "node scripts/build.js",
     "dev": "node scripts/build.js && python3 -m http.server 8000",
     "serve": "python3 -m http.server 8000",
     "update-content": "node scripts/update-content.js",
