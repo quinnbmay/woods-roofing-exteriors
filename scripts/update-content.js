@@ -177,9 +177,9 @@ class ContentUpdater {
       this.notion.getTestimonials()
     ]);
 
-    // Update featured services on homepage (up to 4 services)
+    // Update featured services on homepage (show all services)
     if (services.length > 0) {
-      const featuredServices = services.slice(0, 4);
+      const featuredServices = services;
       
       const servicesHtml = featuredServices.map((service, index) => `
         <div role="listitem" class="w-dyn-item">
